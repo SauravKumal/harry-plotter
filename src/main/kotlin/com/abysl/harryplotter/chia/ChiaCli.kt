@@ -34,6 +34,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
+import java.time.LocalDateTime
 
 class ChiaCli(val exe: File = File(Prefs.exePath), val config: File = File(Prefs.configPath)) : CoroutineScope {
     override val coroutineContext: CoroutineContext
@@ -78,6 +79,11 @@ class ChiaCli(val exe: File = File(Prefs.exePath), val config: File = File(Prefs
         vararg commandArgs: String,
     ): Process {
         val command: List<String> = listOf(exe.path) + commandArgs.toList()
+        val plotterLogDir = File(System.getProperty("user.home") + "/.harryplotter/plotLogs")
+        val logFile = File(plotterLogDir.path + "/" + LocalDateTime.now() + ".log")
+        if (!plotterLogDir.exists()) { 
+            plotterLogDir.mkdirs()
+        }
         val proc: Process = ProcessBuilder(command)
             .start()
         val input = BufferedReader(InputStreamReader(proc.inputStream))
@@ -85,9 +91,11 @@ class ChiaCli(val exe: File = File(Prefs.exePath), val config: File = File(Prefs
         CoroutineScope(Dispatchers.IO).launch {
             while (proc.isAlive) {
                 input.lines().forEach {
+                    logFile.writeText(it)
                     outputCallback(it)
                 }
                 err.lines().forEach {
+                    logFile.writeText(it)
                     outputCallback(it)
                 }
                 delay(ioDelay)
