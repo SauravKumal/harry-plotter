@@ -81,6 +81,7 @@ class ChiaCli(val exe: File = File(Prefs.exePath), val config: File = File(Prefs
         val command: List<String> = listOf(exe.path) + commandArgs.toList()
         val plotterLogDir = File(System.getProperty("user.home") + "/.harryplotter/plotLogs")
         val logFile = File(plotterLogDir.path + "/" + LocalDateTime.now() + ".log")
+        logFile.createNewFile()
         if (!plotterLogDir.exists()) { 
             plotterLogDir.mkdirs()
         }
@@ -91,11 +92,11 @@ class ChiaCli(val exe: File = File(Prefs.exePath), val config: File = File(Prefs
         CoroutineScope(Dispatchers.IO).launch {
             while (proc.isAlive) {
                 input.lines().forEach {
-                    logFile.writeText(it)
+                    logFile.appendText(it+'\n')
                     outputCallback(it)
                 }
                 err.lines().forEach {
-                    logFile.writeText(it)
+                    logFile.appendText(it+'\n')
                     outputCallback(it)
                 }
                 delay(ioDelay)
